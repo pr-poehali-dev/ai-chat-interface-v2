@@ -17,12 +17,7 @@ const QUICK_COMMANDS = [
   { icon: "🔮", label: "Код и скрипты", cmd: "/code" },
 ];
 
-const AI_RESPONSES = [
-  "Анализирую запрос... Обрабатываю нейронные паттерны. Ответ сгенерирован на основе 1.7 триллиона параметров модели NEXUS-7.",
-  "Задача принята. Активирую модуль глубокого обучения. Результат готов — синтезировал оптимальное решение из 847 возможных вариантов.",
-  "Запрос обработан. Используя квантовые алгоритмы предсказания, предлагаю следующее решение с точностью 98.7%.",
-  "Инициирую протокол генерации. Согласно данным обучающей выборки, наилучший ответ: задача успешно декомпозирована и решена.",
-];
+const SYSTEM_PROMPT = "Ты NEXUS AI — высокотехнологичный помощник с футуристичным стилем общения. Отвечай по-русски, кратко и по делу. Можешь иногда использовать технические термины и цифры для атмосферы, но главное — реально помогай пользователю.";
 
 const ChatPage = () => {
   const [messages, setMessages] = useState<Message[]>([
@@ -30,7 +25,7 @@ const ChatPage = () => {
       id: 1,
       role: "ai",
       content: "NEXUS AI онлайн. Системы инициализированы. Готов к взаимодействию. Используйте быстрые команды ниже или введите запрос вручную.",
-      time: "09:41"
+      time: new Date().toLocaleTimeString("ru", { hour: "2-digit", minute: "2-digit" })
     }
   ]);
   const [input, setInput] = useState("");
@@ -41,19 +36,44 @@ const ChatPage = () => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const sendMessage = (text: string) => {
-    if (!text.trim()) return;
+  const sendMessage = async (text: string) => {
+    if (!text.trim() || isTyping) return;
     const now = new Date().toLocaleTimeString("ru", { hour: "2-digit", minute: "2-digit" });
 
-    setMessages((prev) => [...prev, { id: Date.now(), role: "user", content: text, time: now }]);
+    const userMsg: Message = { id: Date.now(), role: "user", content: text, time: now };
+    setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);
 
-    setTimeout(() => {
+    try {
+      const history = messages
+        .slice(-10)
+        .map((m) => ({ role: m.role === "ai" ? "assistant" : "user", content: m.content }));
+      history.push({ role: "user", content: text });
+
+      const body = {
+        model: "openai",
+        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...history],
+      };
+
+      const res = await fetch("https://text.pollinations.ai/openai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+      const reply = data?.choices?.[0]?.message?.content || "Ошибка соединения с нейросетью. Повторите запрос.";
+
+      setMessages((prev) => [...prev, { id: Date.now() + 1, role: "ai", content: reply, time: now }]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now() + 1, role: "ai", content: "Ошибка соединения с NEXUS-сервером. Проверьте сеть и повторите попытку.", time: now },
+      ]);
+    } finally {
       setIsTyping(false);
-      const response = AI_RESPONSES[Math.floor(Math.random() * AI_RESPONSES.length)];
-      setMessages((prev) => [...prev, { id: Date.now() + 1, role: "ai", content: response, time: now }]);
-    }, 1500 + Math.random() * 1000);
+    }
   };
 
   return (

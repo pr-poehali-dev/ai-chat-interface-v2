@@ -7,9 +7,8 @@ interface AuthPageProps {
 
 const AuthPage = ({ onLogin }: AuthPageProps) => {
   const [mode, setMode] = useState<"login" | "register">("login");
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -17,7 +16,7 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      onLogin({ name: name || email.split("@")[0], email });
+      onLogin({ name: username, email: username });
     }, 1500);
   };
 
@@ -135,43 +134,17 @@ const AuthPage = ({ onLogin }: AuthPageProps) => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === "register" && (
-            <div className="animate-fade-in-up">
-              <label className="block font-mono-plex text-xs mb-1.5 tracking-wider" style={{ color: "#00ffff" }}>
-                ИМЯ ПОЛЬЗОВАТЕЛЯ
-              </label>
-              <div className="relative">
-                <Icon name="User" size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#00ffff" } as React.CSSProperties} />
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="NEXUS_USER"
-                  className="w-full pl-9 pr-4 py-3 text-sm font-mono-plex outline-none transition-all duration-300"
-                  style={{
-                    background: "rgba(0,255,255,0.03)",
-                    border: "1px solid rgba(0,255,255,0.2)",
-                    color: "#a0f4f4",
-                    caretColor: "#00ffff"
-                  }}
-                  onFocus={(e) => { e.target.style.borderColor = "#00ffff"; e.target.style.boxShadow = "0 0 15px rgba(0,255,255,0.15)"; }}
-                  onBlur={(e) => { e.target.style.borderColor = "rgba(0,255,255,0.2)"; e.target.style.boxShadow = "none"; }}
-                />
-              </div>
-            </div>
-          )}
-
           <div>
             <label className="block font-mono-plex text-xs mb-1.5 tracking-wider" style={{ color: "#00ffff" }}>
-              EMAIL / ID
+              ИМЯ ПОЛЬЗОВАТЕЛЯ / ID
             </label>
             <div className="relative">
-              <Icon name="Mail" size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#00ffff" } as React.CSSProperties} />
+              <Icon name="User" size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#00ffff" } as React.CSSProperties} />
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="user@nexus.ai"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="NEXUS_USER"
                 required
                 className="w-full pl-9 pr-4 py-3 text-sm font-mono-plex outline-none transition-all duration-300"
                 style={{
